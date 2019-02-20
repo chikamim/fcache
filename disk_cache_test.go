@@ -2,6 +2,7 @@ package fcache
 
 import (
 	"fmt"
+	"os"
 	"testing"
 )
 
@@ -10,6 +11,10 @@ func printList(t *testing.T, cache *diskCache) {
 	for i := range list {
 		t.Logf("%#v", list[i])
 	}
+}
+
+func teardown() {
+	os.RemoveAll(DefaultDiskCacheDir)
 }
 
 func TestDiskCacheFileName(t *testing.T) {
@@ -60,6 +65,7 @@ func TestDiskCacheEliminate(t *testing.T) {
 }
 
 func TestDiskCacheInit(t *testing.T) {
+	defer teardown()
 	cache := newDiskCache(100, false, DefaultDiskCacheDir, 0).(*diskCache)
 	if err := cache.init(); err != nil {
 		t.Fatal(err)
