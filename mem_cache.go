@@ -1,10 +1,12 @@
 package fcache
 
 import (
+	"io"
 	"sync"
 
-	"github.com/nuczzz/lru"
 	"sync/atomic"
+
+	"github.com/nuczzz/lru"
 )
 
 // memCache memory cache.
@@ -78,6 +80,11 @@ func (mc *memCache) Get(key string) (value []byte, extra interface{}, err error)
 		atomic.AddInt64(&mc.hitCount, 1)
 		return node.Value.(CacheValue).Value, node.Extra, nil
 	}
+	return nil, nil, nil
+}
+
+func (mc *memCache) Reader(key string) (r io.ReadCloser, extra interface{}, err error) {
+	// TODO:
 	return nil, nil, nil
 }
 

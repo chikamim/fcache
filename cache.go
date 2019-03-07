@@ -1,5 +1,7 @@
 package fcache
 
+import "io"
+
 type CacheValue struct {
 	Value []byte
 }
@@ -17,6 +19,9 @@ type Cache interface {
 
 	// Get get cache with key, nil will be return if key is not exist.
 	Get(key string) (value []byte, extra interface{}, err error)
+
+	// Reader returns cache reader, nil will be return if key is not exist.
+	Reader(key string) (r io.ReadCloser, extra interface{}, err error)
 
 	// GetHitInfo get cache hit info, return the count of hit visitor
 	// and the count of total visitor

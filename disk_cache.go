@@ -1,13 +1,15 @@
 package fcache
 
 import (
+	"io"
 	"io/ioutil"
 	"os"
 	"sync"
 
-	"github.com/nuczzz/lru"
 	"sync/atomic"
 	"time"
+
+	"github.com/nuczzz/lru"
 )
 
 // diskCache disk cache
@@ -96,6 +98,35 @@ func (dc *diskCache) Get(key string) (value []byte, extra interface{}, err error
 
 		atomic.AddInt64(&dc.hitCount, 1)
 		return node.Value.(CacheValue).Value, node.Extra, nil
+	}
+
+	return nil, nil, nil
+}
+
+func (dc *diskCache) Reader(key string) (r io.ReadCloser, extra interface{}, err error) {
+	if dc.needCryptKey {
+		key = MD5(key)
+	}
+
+	dc.lock.Lock()
+	defer dc.lock.Unlock()
+
+	atomic.AddInt64(&dc.totalCount, 1)
+	if data, ok := dc.m[key]; ok {
+		node, err := dc.lru.Access(data)
+		if err != nil {
+			return nil, nil, err
+		}
+		if node == nil {
+			return nil, nil, nil
+		}
+
+		f, err := os.Open(dc.fileName(key))
+		if err != nil {
+			return nil, nil, err
+		}
+		atomic.AddInt64(&dc.hitCount, 1)
+		return f, node.Extra, nil
 	}
 
 	return nil, nil, nil
